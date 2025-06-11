@@ -20,20 +20,19 @@ builder.Services.AddSignalR().AddAzureSignalR(options =>
 
 var app = builder.Build();
 
-// Міграція БД
-try
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (!string.IsNullOrEmpty(connectionString))
 {
-    using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    context.Database.Migrate();
+    using (var scope = app.Services.CreateScope())
+    {
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        context.Database.Migrate();
+    }
 }
-catch (Exception ex)
+else
 {
-    var logger = app.Services.GetRequiredService<ILogger<Program>>();
-    logger.LogError(ex, "An error occurred while migrating or initializing the database.");
-    throw; // щоб побачити це в логах Azure
+    Console.WriteLine("No DB connection string configured, skipping migrations.");
 }
-
 
 if (app.Environment.IsDevelopment())
 {
