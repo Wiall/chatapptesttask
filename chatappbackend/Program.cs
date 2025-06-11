@@ -15,15 +15,14 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
     {
         policy
-            .WithOrigins("https://chatapp-ui.azurewebsites.net") // змінити на твій реальний фронтенд
+            .WithOrigins("https://chatapp-ui.azurewebsites.net")
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials(); // Обов'язково для SignalR
+            .AllowCredentials();
     });
 });
 
-
-// Додай Azure SignalR
+// Підключення Azure SignalR
 builder.Services.AddSignalR().AddAzureSignalR(options =>
 {
     options.ConnectionString = builder.Configuration.GetConnectionString("AzureSignalRConnection");
@@ -46,8 +45,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors();
-// Додай маршрут до хабу
-app.MapHub<ChatHub>("/chatHub");
+// ⛔️ Тут була відсутня важлива частина:
+app.UseRouting();         // <== Обов’язково для маршрутизації
+app.UseCors();            // має йти після UseRouting(), до MapHub
+
+// Map endpoints
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapHub<ChatHub>("/chatHub");
+});
 
 app.Run();
